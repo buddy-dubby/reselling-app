@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block title %}Tools{% endblock %}
+
+{% block content %}
+<h2 style="margin-bottom: 24px;">🛠️ Tools</h2>
+
+<!-- Background Removal Tool -->
+<div class="card">
+    <h3 style="margin-bottom: 16px;">✨ Background Remover</h3>
+    <p style="color: #888; margin-bottom: 20px;">Upload any product photo to remove its background instantly. Get both transparent PNG and white background JPG versions.</p>
+    
+    <div id="dropZone" style="border: 2px dashed rgba(255,255,255,0.2); border-radius: 12px; padding: 40px; text-align: center; cursor: pointer; transition: all 0.2s;">
+        <div style="font-size: 3em; margin-bottom: 10px;">📸</div>
+        <div style="margin-bottom: 10px;">Drop an image here or click to upload</div>
+        <div style="color: #888; font-size: 0.85em;">Supports JPG, PNG, WebP</div>
+        <input type="file" id="fileInput" accept="image/*" style="display: none;">
+    </div>
+    
+    <div id="preview" style="display: none; margin-top: 20px;">
+        <h4 style="margin-bottom: 12px;">Original</h4>
+        <img id="previewImg" style="max-width: 300px; max-height: 300px; border-radius: 8px;">
+        <div style="margin-top: 15px;">
+            <button id="processBtn" class="btn btn-primary" onclick="processImage()">✨ Remove Background</button>
+        </div>
+    </div>
+    
+    <div id="results" style="display: none; margin-top: 30px;">
+        <h4 style="margin-bottom: 16px;">Results</h4>
+        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+            <div style="text-align: center;">
+                <img id="whiteResult" style="max-width: 250px; max-height: 250px; border-radius: 8px; border: 2px solid #4ade80;">
+                <div style="margin-top: 8px; color: #888;">White Background</div>
+                <a id="whiteDownload" class="btn" style="margin-top: 8px; display: inline-block;" download>⬇️ Download JPG</a>
+            </div>
+            <div style="text-align: center;">
+                <img id="transparentResult" style="max-width: 250px; max-height: 250px; border-radius: 8px; background: repeating-conic-gradient(#333 0% 25%, #444 0% 50%) 50% / 20px 20px;">
+                <div style="margin-top: 8px; color: #888;">Transparent</div>
+                <a id="transparentDownload" class="btn" style="margin-top: 8px; display: inline-block;" download>⬇️ Download PNG</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Price Checker Tool -->
+<div class="card" style="margin-top: 20px;">
+    <h3 style="margin-bottom: 16px;">🔍 Quick Price Check</h3>
+    <p style="color: #888; margin-bottom: 20px;">Look up real market prices from sold listings on eBay and Poshmark.</p>
+    
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <input type="text" id="priceQuery" placeholder="e.g., Nike Air Max 90 white" style="flex: 1; min-width: 200px;">
+        <button class="btn btn-primary" onclick="quickPriceCheck()">Check Prices</button>
+    </div>
+    
+    <div id="quickPriceResults" style="margin-top: 20px; display: none;"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+const preview = document.getElementById('preview');
+const previewImg = document.getElementById('previewImg');
+let selectedFile = null;
+
+// Click to upload
+dropZone.addEventListener('click', () => fileInput.click());
+
+// File selected
+fileInput.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+        handleFile(e.target.files[0]);
+    }
+});
+
+// Drag and drop
+dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.style.borderColor = '#667eea';
+    dropZone.style.background = 'rgba(102, 126, 234, 0.1)';
+});
+
+dropZone.addEventListener('dragleave', () => {
+    dropZone.style.borderColor = 'rgba(255,255,255,0.2)';
+    dropZone.style.background = 'transparent';
+});
+
+dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.style.borderColor = 'rgba(255,255,255,0.2)';
+    dropZone.style.background = 'transparent';
+    
+    if (e.dataTransfer.files.length > 0) {
+        handleFile(e.dataTransfer.files[0]);
+    }
+});
+
+function handleFile(file) {
+    if (!file.type.startsWith('image/')) {
+        alert('Please select an image file');
+        return;
+    }
+    
+    selectedFile = file;
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        previewImg.src = e.target.result;
+        preview.style.display = 'block';
+        document.getElementById('results').style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+}
+
+async function processImage() {
+    if (!selectedFile) return;
+    
+    const btn = document.getElementById('processBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Processing... (may take 10-30s)';
+    
+    const formData = new FormData();
+    formData.append('image', selectedFile);
+    
+    try {
+        const response = await fetch('/api/remove-background', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('whiteResult').src = data.white_bg.url;
+            document.getElementById('transparentResult').src = data.transparent.url;
+            document.getElementById('whiteDownload').href = data.white_bg.url;
+            document.getElementById('transparentDownload').href = data.transparent.url;
+            document.getElementById('results').style.display = 'block';
+            
+            btn.textContent = '✅ Done! Upload another?';
+        } else {
+            throw new Error(data.error);
+        }
+    } catch (error) {
+        alert('Error processing image: ' + error.message);
+        btn.textContent = '✨ Remove Background';
+    }
+    
+    btn.disabled = false;
+}
+
+async function quickPriceCheck() {
+    const query = document.getElementById('priceQuery').value.trim();
+    if (!query) {
+        alert('Please enter a search query');
+        return;
+    }
+    
+    const results = document.getElementById('quickPriceResults');
+    results.style.display = 'block';
+    results.innerHTML = '<div style="color: #888;">🔍 Searching sold listings...</div>';
+    
+    try {
+        const response = await fetch('/api/price-check', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: query })
+        });
+        
+        const data = await response.json();
+        
+        results.innerHTML = `
+            <div class="card" style="margin: 0; background: rgba(102, 126, 234, 0.1);">
+                <h4 style="margin-bottom: 15px;">"${query}"</h4>
+                <div style="display: flex; justify-content: space-around; text-align: center; flex-wrap: wrap; gap: 15px;">
+                    <div>
+                        <div style="color: #fbbf24; font-size: 1.5em; font-weight: bold;">$${data.recommendation.quick_sale}</div>
+                        <div style="color: #888;">Quick Sale</div>
+                    </div>
+                    <div>
+                        <div style="color: #4ade80; font-size: 1.5em; font-weight: bold;">$${data.recommendation.fair_price}</div>
+                        <div style="color: #888;">Fair Price</div>
+                    </div>
+                    <div>
+                        <div style="color: #a78bfa; font-size: 1.5em; font-weight: bold;">$${data.recommendation.max_value}</div>
+                        <div style="color: #888;">Max Value</div>
+                    </div>
+                </div>
+                <div style="margin-top: 15px; color: #888; font-size: 0.85em; text-align: center;">${data.tip}</div>
+            </div>
+        `;
+    } catch (error) {
+        results.innerHTML = '<div style="color: #f87171;">Error checking prices</div>';
+    }
+}
+</script>
+{% endblock %}

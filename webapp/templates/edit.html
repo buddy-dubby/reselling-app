@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Edit {{ item.name }}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2 style="margin-bottom: 24px;">Edit Item</h2>
+    
+    <form method="POST">
+        <!-- Basic Info -->
+        <label for="name">Item Name *</label>
+        <input type="text" name="name" id="name" required value="{{ item.name }}">
+        
+        <div class="form-row">
+            <div>
+                <label for="brand">Brand</label>
+                <input type="text" name="brand" id="brand" value="{{ item.brand or '' }}">
+            </div>
+            <div>
+                <label for="category">Category</label>
+                <select name="category" id="category">
+                    <option value="">Select...</option>
+                    <option value="tops" {% if item.category == 'tops' %}selected{% endif %}>Tops</option>
+                    <option value="bottoms" {% if item.category == 'bottoms' %}selected{% endif %}>Bottoms</option>
+                    <option value="dresses" {% if item.category == 'dresses' %}selected{% endif %}>Dresses</option>
+                    <option value="outerwear" {% if item.category == 'outerwear' %}selected{% endif %}>Outerwear</option>
+                    <option value="shoes" {% if item.category == 'shoes' %}selected{% endif %}>Shoes</option>
+                    <option value="bags" {% if item.category == 'bags' %}selected{% endif %}>Bags</option>
+                    <option value="accessories" {% if item.category == 'accessories' %}selected{% endif %}>Accessories</option>
+                    <option value="other" {% if item.category == 'other' %}selected{% endif %}>Other</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="form-row">
+            <div>
+                <label for="condition">Condition</label>
+                <select name="condition" id="condition">
+                    <option value="new" {% if item.condition == 'new' %}selected{% endif %}>New with tags</option>
+                    <option value="excellent" {% if item.condition == 'excellent' %}selected{% endif %}>Excellent (like new)</option>
+                    <option value="good" {% if item.condition == 'good' %}selected{% endif %}>Good (light wear)</option>
+                    <option value="fair" {% if item.condition == 'fair' %}selected{% endif %}>Fair (visible wear)</option>
+                </select>
+            </div>
+            <div>
+                <label for="status">Status</label>
+                <select name="status" id="status">
+                    <option value="unlisted" {% if item.status == 'unlisted' %}selected{% endif %}>Unlisted</option>
+                    <option value="listed" {% if item.status == 'listed' %}selected{% endif %}>Listed</option>
+                    <option value="sold" {% if item.status == 'sold' %}selected{% endif %}>Sold</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="form-row">
+            <div>
+                <label for="color">Color</label>
+                <input type="text" name="color" id="color" value="{{ item.color or '' }}" placeholder="e.g., Black">
+            </div>
+            <div>
+                <label for="size">Size</label>
+                <input type="text" name="size" id="size" value="{{ item.size or '' }}" placeholder="e.g., US 8">
+            </div>
+        </div>
+        
+        <label for="measurements">Measurements</label>
+        <input type="text" name="measurements" id="measurements" value="{{ item.measurements or '' }}" placeholder="e.g., 18&quot; pit to pit">
+        
+        <!-- Pricing -->
+        <h3 style="margin: 30px 0 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">💰 Pricing</h3>
+        
+        <div class="form-row">
+            <div>
+                <label for="cost">What you paid ($)</label>
+                <input type="number" name="cost" id="cost" step="0.01" min="0" value="{{ item.cost or '' }}">
+            </div>
+            <div>
+                <label for="floor_price">Floor price ($)</label>
+                <input type="number" name="floor_price" id="floor_price" step="0.01" min="0" value="{{ item.floor_price or '' }}">
+            </div>
+        </div>
+        
+        <label for="target_price">Target price ($)</label>
+        <input type="number" name="target_price" id="target_price" step="0.01" min="0" value="{{ item.target_price or '' }}">
+        
+        <!-- Notes -->
+        <label for="notes">Notes</label>
+        <textarea name="notes" id="notes" rows="3">{{ item.notes or '' }}</textarea>
+        
+        <!-- Submit -->
+        <div style="display: flex; gap: 15px; margin-top: 30px;">
+            <button type="submit" class="btn btn-primary" style="flex: 1;">Save Changes</button>
+            <a href="/item/{{ item.id }}" class="btn">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

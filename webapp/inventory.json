@@ -1,0 +1,22 @@
+{
+  "items": [
+    {
+      "id": "fdc962e8",
+      "name": "Dr. Martens Platform Heel Boots",
+      "brand": "Dr. Martens",
+      "category": "shoes",
+      "condition": "good",
+      "color": "Black",
+      "size": "US 8",
+      "measurements": "Heel height: 3 inches",
+      "cost": 150.0,
+      "floor_price": 75.0,
+      "target_price": 120.0,
+      "notes": "Super comfortable chunky platform. Perfect for fall!",
+      "photos": [],
+      "status": "unlisted",
+      "created_at": "2026-02-07T17:55:35.965324",
+      "platforms": []
+    }
+  ]
+}

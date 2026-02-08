@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}Add Item{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2 style="margin-bottom: 24px;">Add New Item</h2>
+    
+    <form method="POST" enctype="multipart/form-data">
+        <!-- Photo Upload -->
+        <label for="photos">Photos</label>
+        <label class="photo-upload" id="photoUploadArea">
+            <input type="file" name="photos" id="photos" multiple accept="image/*">
+            <div style="font-size: 2em; margin-bottom: 10px;">📷</div>
+            <div>Click to upload photos</div>
+            <div style="font-size: 0.8em; color: #666; margin-top: 8px;">or drag and drop</div>
+        </label>
+        <div id="photoPreview" style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px;"></div>
+        
+        <!-- Basic Info -->
+        <label for="name">Item Name *</label>
+        <input type="text" name="name" id="name" required placeholder="e.g., Dr. Martens Platform Boots">
+        
+        <div class="form-row">
+            <div>
+                <label for="brand">Brand</label>
+                <input type="text" name="brand" id="brand" placeholder="e.g., Dr. Martens">
+            </div>
+            <div>
+                <label for="category">Category</label>
+                <select name="category" id="category">
+                    <option value="">Select...</option>
+                    <option value="tops">Tops</option>
+                    <option value="bottoms">Bottoms</option>
+                    <option value="dresses">Dresses</option>
+                    <option value="outerwear">Outerwear</option>
+                    <option value="shoes">Shoes</option>
+                    <option value="bags">Bags</option>
+                    <option value="accessories">Accessories</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="form-row">
+            <div>
+                <label for="condition">Condition</label>
+                <select name="condition" id="condition">
+                    <option value="new">New with tags</option>
+                    <option value="excellent">Excellent (like new)</option>
+                    <option value="good" selected>Good (light wear)</option>
+                    <option value="fair">Fair (visible wear)</option>
+                </select>
+            </div>
+            <div>
+                <label for="color">Color</label>
+                <input type="text" name="color" id="color" placeholder="e.g., Black, Navy Blue">
+            </div>
+        </div>
+        
+        <div class="form-row">
+            <div>
+                <label for="size">Size</label>
+                <input type="text" name="size" id="size" placeholder="e.g., US 8, Medium, 28x32">
+            </div>
+            <div>
+                <label for="measurements">Measurements</label>
+                <input type="text" name="measurements" id="measurements" placeholder="e.g., 18" pit to pit">
+            </div>
+        </div>
+        
+        <!-- Pricing -->
+        <h3 style="margin: 30px 0 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">💰 Pricing</h3>
+        
+        <div class="form-row">
+            <div>
+                <label for="cost">What you paid ($)</label>
+                <input type="number" name="cost" id="cost" step="0.01" min="0" placeholder="0.00">
+            </div>
+            <div>
+                <label for="floor_price">Floor price ($)</label>
+                <input type="number" name="floor_price" id="floor_price" step="0.01" min="0" placeholder="Don't sell below this">
+            </div>
+        </div>
+        
+        <label for="target_price">Target price ($)</label>
+        <input type="number" name="target_price" id="target_price" step="0.01" min="0" placeholder="What you want to get">
+        
+        <div id="priceAdvice" class="card" style="background: rgba(102, 126, 234, 0.1); display: none;">
+            <h4 style="margin-bottom: 10px;">💡 Price Suggestion</h4>
+            <p id="priceAdviceText">Loading...</p>
+        </div>
+        
+        <!-- Notes -->
+        <label for="notes">Notes</label>
+        <textarea name="notes" id="notes" rows="3" placeholder="Any details to remember..."></textarea>
+        
+        <!-- Submit -->
+        <div style="display: flex; gap: 15px; margin-top: 30px;">
+            <button type="submit" class="btn btn-primary" style="flex: 1;">Add Item</button>
+            <a href="/" class="btn">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Photo preview
+const photoInput = document.getElementById('photos');
+const photoPreview = document.getElementById('photoPreview');
+const uploadArea = document.getElementById('photoUploadArea');
+
+photoInput.addEventListener('change', function(e) {
+    photoPreview.innerHTML = '';
+    Array.from(e.target.files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.style.cssText = 'width: 100px; height: 100px; object-fit: cover; border-radius: 8px;';
+            photoPreview.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+    });
+});
+
+// Drag and drop
+uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.style.borderColor = '#667eea';
+    uploadArea.style.background = 'rgba(102, 126, 234, 0.1)';
+});
+
+uploadArea.addEventListener('dragleave', () => {
+    uploadArea.style.borderColor = 'rgba(255,255,255,0.2)';
+    uploadArea.style.background = 'transparent';
+});
+
+uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.style.borderColor = 'rgba(255,255,255,0.2)';
+    uploadArea.style.background = 'transparent';
+    photoInput.files = e.dataTransfer.files;
+    photoInput.dispatchEvent(new Event('change'));
+});
+
+// Auto-calculate floor price
+const costInput = document.getElementById('cost');
+const floorInput = document.getElementById('floor_price');
+
+costInput.addEventListener('change', function() {
+    const cost = parseFloat(this.value);
+    if (cost > 0 && !floorInput.value) {
+        // Suggest floor at cost + 10% (to cover fees)
+        floorInput.value = (cost * 1.1).toFixed(2);
+    }
+});
+
+// Price check button could go here
+</script>
+{% endblock %}

@@ -1,0 +1,332 @@
+{% extends "base.html" %}
+
+{% block title %}{{ item.name }}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <!-- Header with actions -->
+    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+        <div>
+            <h2>{{ item.name }}</h2>
+            <div style="color: #888; margin-top: 4px;">{{ item.brand or 'No brand' }} • {{ item.category or 'Uncategorized' }}</div>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <a href="/item/{{ item.id }}/edit" class="btn">✏️ Edit</a>
+            <form action="/item/{{ item.id }}/delete" method="POST" style="display: inline;" onsubmit="return confirm('Delete this item?');">
+                <button type="submit" class="btn btn-danger">🗑️</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Photos -->
+    {% if item.photos %}
+    <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 24px;">
+        {% for photo in item.photos %}
+        <div class="photo-card" style="position: relative;">
+            <img src="/uploads/{{ photo }}" alt="{{ item.name }}" style="width: 200px; height: 200px; object-fit: cover; border-radius: 12px;">
+            <button class="btn remove-bg-btn" onclick="removeBg({{ loop.index0 }}, this)" style="position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); padding: 6px 12px; font-size: 0.8em; background: rgba(0,0,0,0.8);">
+                ✨ Remove BG
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Processed Photos (with background removed) -->
+    {% if item.processed_photos %}
+    <div style="margin-bottom: 24px;">
+        <h4 style="margin-bottom: 12px; color: #888;">📸 Processed Photos</h4>
+        <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+            {% for proc in item.processed_photos %}
+            <div style="text-align: center;">
+                <img src="/uploads/{{ proc.white_bg }}" alt="White BG" style="width: 150px; height: 150px; object-fit: cover; border-radius: 8px; border: 2px solid #4ade80;">
+                <div style="font-size: 0.75em; color: #888; margin-top: 4px;">White BG</div>
+            </div>
+            <div style="text-align: center;">
+                <img src="/uploads/{{ proc.transparent }}" alt="Transparent" style="width: 150px; height: 150px; object-fit: cover; border-radius: 8px; background: repeating-conic-gradient(#333 0% 25%, #444 0% 50%) 50% / 20px 20px;">
+                <div style="font-size: 0.75em; color: #888; margin-top: 4px;">Transparent</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    {% else %}
+    <div style="background: rgba(0,0,0,0.2); border-radius: 12px; padding: 60px; text-align: center; margin-bottom: 24px;">
+        <div style="font-size: 4em; margin-bottom: 10px;">📷</div>
+        <div style="color: #888;">No photos yet</div>
+    </div>
+    {% endif %}
+    
+    <!-- Status -->
+    <div style="margin-bottom: 24px;">
+        <span class="status-badge status-{{ item.status }}" style="font-size: 1em; padding: 8px 20px;">{{ item.status|upper }}</span>
+    </div>
+    
+    <!-- Pricing Info -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; margin-bottom: 24px;">
+        <div class="card" style="margin: 0; text-align: center;">
+            <div style="color: #888; font-size: 0.85em; margin-bottom: 4px;">You Paid</div>
+            <div style="font-size: 1.5em; font-weight: bold;">
+                {% if item.cost %}${{ "%.2f"|format(item.cost) }}{% else %}—{% endif %}
+            </div>
+        </div>
+        <div class="card" style="margin: 0; text-align: center;">
+            <div style="color: #888; font-size: 0.85em; margin-bottom: 4px;">Floor Price</div>
+            <div style="font-size: 1.5em; font-weight: bold; color: #f87171;">
+                {% if item.floor_price %}${{ "%.2f"|format(item.floor_price) }}{% else %}—{% endif %}
+            </div>
+        </div>
+        <div class="card" style="margin: 0; text-align: center;">
+            <div style="color: #888; font-size: 0.85em; margin-bottom: 4px;">Target Price</div>
+            <div style="font-size: 1.5em; font-weight: bold; color: #4ade80;">
+                {% if item.target_price %}${{ "%.2f"|format(item.target_price) }}{% else %}—{% endif %}
+            </div>
+        </div>
+        {% if item.cost and item.target_price %}
+        <div class="card" style="margin: 0; text-align: center;">
+            <div style="color: #888; font-size: 0.85em; margin-bottom: 4px;">Potential Profit</div>
+            <div style="font-size: 1.5em; font-weight: bold; color: {% if item.target_price > item.cost %}#4ade80{% else %}#f87171{% endif %};">
+                ${{ "%.2f"|format(item.target_price - item.cost) }}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Details -->
+    <div style="margin-bottom: 24px;">
+        <h3 style="margin-bottom: 12px;">Details</h3>
+        <table style="width: 100%;">
+            <tr>
+                <td style="color: #888; padding: 8px 0;">Condition</td>
+                <td style="padding: 8px 0; text-transform: capitalize;">{{ item.condition or '—' }}</td>
+            </tr>
+            {% if item.color %}
+            <tr>
+                <td style="color: #888; padding: 8px 0;">Color</td>
+                <td style="padding: 8px 0;">{{ item.color }}</td>
+            </tr>
+            {% endif %}
+            {% if item.size %}
+            <tr>
+                <td style="color: #888; padding: 8px 0;">Size</td>
+                <td style="padding: 8px 0;">{{ item.size }}</td>
+            </tr>
+            {% endif %}
+            {% if item.measurements %}
+            <tr>
+                <td style="color: #888; padding: 8px 0;">Measurements</td>
+                <td style="padding: 8px 0;">{{ item.measurements }}</td>
+            </tr>
+            {% endif %}
+            <tr>
+                <td style="color: #888; padding: 8px 0;">Added</td>
+                <td style="padding: 8px 0;">{{ item.created_at[:10] if item.created_at else '—' }}</td>
+            </tr>
+        </table>
+    </div>
+    
+    <!-- Notes -->
+    {% if item.notes %}
+    <div style="margin-bottom: 24px;">
+        <h3 style="margin-bottom: 12px;">Notes</h3>
+        <div style="background: rgba(0,0,0,0.2); padding: 16px; border-radius: 8px; white-space: pre-wrap;">{{ item.notes }}</div>
+    </div>
+    {% endif %}
+    
+    <!-- Price Check -->
+    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+        <h3 style="margin-bottom: 12px;">🔍 Price Check</h3>
+        <button id="checkPricesBtn" class="btn btn-primary" onclick="checkPrices()">Check Market Prices</button>
+        <div id="priceResults" style="margin-top: 20px; display: none;"></div>
+    </div>
+    
+    <!-- Description Generator -->
+    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+        <h3 style="margin-bottom: 12px;">📝 Generate Descriptions</h3>
+        <button id="generateDescBtn" class="btn btn-primary" onclick="generateDescriptions()">Generate for All Platforms</button>
+        <div id="descResults" style="margin-top: 20px; display: none;"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function checkPrices() {
+    const btn = document.getElementById('checkPricesBtn');
+    const results = document.getElementById('priceResults');
+    
+    btn.disabled = true;
+    btn.textContent = 'Checking...';
+    results.style.display = 'block';
+    results.innerHTML = '<div style="color: #888;">Looking up prices...</div>';
+    
+    try {
+        const response = await fetch('/api/price-check', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: '{{ item.brand }} {{ item.name }}' })
+        });
+        
+        const data = await response.json();
+        
+        let html = '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px;">';
+        
+        for (const [platform, prices] of Object.entries(data.estimates)) {
+            html += `
+                <div class="card" style="margin: 0;">
+                    <div style="text-transform: capitalize; font-weight: bold; margin-bottom: 8px;">${platform}</div>
+                    <div style="color: #888; font-size: 0.85em;">$${prices.low} - $${prices.high}</div>
+                    <div style="color: #4ade80; font-size: 1.2em;">avg: $${prices.avg}</div>
+                </div>
+            `;
+        }
+        html += '</div>';
+        
+        html += `
+            <div class="card" style="margin-top: 15px; background: rgba(102, 126, 234, 0.1);">
+                <h4 style="margin-bottom: 10px;">💡 Recommendation</h4>
+                <div style="display: flex; justify-content: space-around; text-align: center;">
+                    <div>
+                        <div style="color: #fbbf24; font-size: 1.3em; font-weight: bold;">$${data.recommendation.quick_sale}</div>
+                        <div style="color: #888; font-size: 0.85em;">Quick Sale</div>
+                    </div>
+                    <div>
+                        <div style="color: #4ade80; font-size: 1.3em; font-weight: bold;">$${data.recommendation.fair_price}</div>
+                        <div style="color: #888; font-size: 0.85em;">Fair Price</div>
+                    </div>
+                    <div>
+                        <div style="color: #a78bfa; font-size: 1.3em; font-weight: bold;">$${data.recommendation.max_value}</div>
+                        <div style="color: #888; font-size: 0.85em;">Max Value</div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        results.innerHTML = html;
+    } catch (error) {
+        results.innerHTML = '<div style="color: #f87171;">Error checking prices. Try again later.</div>';
+    }
+    
+    btn.disabled = false;
+    btn.textContent = 'Check Market Prices';
+}
+
+async function generateDescriptions() {
+    const btn = document.getElementById('generateDescBtn');
+    const results = document.getElementById('descResults');
+    
+    btn.disabled = true;
+    btn.textContent = 'Generating...';
+    results.style.display = 'block';
+    results.innerHTML = '<div style="color: #888;">Creating descriptions...</div>';
+    
+    try {
+        const response = await fetch('/api/generate-description', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: '{{ item.name }}',
+                brand: '{{ item.brand or "" }}',
+                category: '{{ item.category or "" }}',
+                condition: '{{ item.condition or "good" }}',
+                color: '{{ item.color or "" }}',
+                size: '{{ item.size or "" }}',
+                measurements: '{{ item.measurements or "" }}',
+                notes: '{{ item.notes or "" }}'
+            })
+        });
+        
+        const data = await response.json();
+        
+        const platforms = ['poshmark', 'depop', 'mercari', 'ebay', 'xiaohongshu'];
+        const platformNames = {
+            poshmark: 'Poshmark',
+            depop: 'Depop', 
+            mercari: 'Mercari',
+            ebay: 'eBay',
+            xiaohongshu: '小红书'
+        };
+        
+        let html = '<div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">';
+        platforms.forEach((p, i) => {
+            html += `<button class="btn ${i === 0 ? 'btn-primary' : ''}" onclick="showDesc('${p}')" id="tab-${p}">${platformNames[p]}</button>`;
+        });
+        html += '</div>';
+        
+        platforms.forEach((p, i) => {
+            const escaped = data[p].replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            html += `
+                <div id="desc-${p}" class="card" style="margin: 0; display: ${i === 0 ? 'block' : 'none'};">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <h4>${platformNames[p]}</h4>
+                        <button class="btn" onclick="copyDesc('${p}')" style="padding: 6px 12px; font-size: 0.85em;">📋 Copy</button>
+                    </div>
+                    <pre id="text-${p}" style="white-space: pre-wrap; background: rgba(0,0,0,0.3); padding: 16px; border-radius: 8px; font-family: inherit; margin: 0;">${escaped}</pre>
+                </div>
+            `;
+        });
+        
+        results.innerHTML = html;
+        
+        // Store data for copying
+        window.descData = data;
+        
+    } catch (error) {
+        results.innerHTML = '<div style="color: #f87171;">Error generating descriptions. Try again later.</div>';
+    }
+    
+    btn.disabled = false;
+    btn.textContent = 'Generate for All Platforms';
+}
+
+function showDesc(platform) {
+    const platforms = ['poshmark', 'depop', 'mercari', 'ebay', 'xiaohongshu'];
+    platforms.forEach(p => {
+        document.getElementById(`desc-${p}`).style.display = p === platform ? 'block' : 'none';
+        document.getElementById(`tab-${p}`).classList.toggle('btn-primary', p === platform);
+    });
+}
+
+function copyDesc(platform) {
+    const text = window.descData[platform];
+    navigator.clipboard.writeText(text).then(() => {
+        const btn = event.target;
+        btn.textContent = '✓ Copied!';
+        setTimeout(() => btn.textContent = '📋 Copy', 2000);
+    });
+}
+
+async function removeBg(photoIndex, btn) {
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = '⏳ Processing...';
+    
+    try {
+        const response = await fetch('/item/{{ item.id }}/remove-bg/' + photoIndex, {
+            method: 'POST'
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            btn.textContent = '✅ Done!';
+            btn.style.background = 'rgba(74, 222, 128, 0.8)';
+            
+            // Reload page to show processed photos
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            throw new Error(data.error || 'Failed to process');
+        }
+    } catch (error) {
+        btn.textContent = '❌ Error';
+        btn.style.background = 'rgba(248, 113, 113, 0.8)';
+        console.error('Background removal failed:', error);
+        
+        setTimeout(() => {
+            btn.textContent = originalText;
+            btn.style.background = 'rgba(0,0,0,0.8)';
+            btn.disabled = false;
+        }, 2000);
+    }
+}
+</script>
+{% endblock %}
