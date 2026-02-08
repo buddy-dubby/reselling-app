@@ -42,6 +42,74 @@
     </div>
 </div>
 
+<!-- Description Generator Tool -->
+<div class="card" style="margin-top: 20px;">
+    <h3 style="margin-bottom: 16px;">📝 Description Generator</h3>
+    <p style="color: #888; margin-bottom: 20px;">Generate platform-optimized listing descriptions. Fill in the details and get ready-to-paste descriptions for Poshmark, Depop, eBay, Mercari, and 小红书!</p>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+        <div>
+            <label style="display: block; color: #888; margin-bottom: 5px; font-size: 0.85em;">Item Name *</label>
+            <input type="text" id="descName" placeholder="e.g., Platform Heel Boots" style="width: 100%;">
+        </div>
+        <div>
+            <label style="display: block; color: #888; margin-bottom: 5px; font-size: 0.85em;">Brand</label>
+            <input type="text" id="descBrand" placeholder="e.g., Dr. Martens" style="width: 100%;">
+        </div>
+        <div>
+            <label style="display: block; color: #888; margin-bottom: 5px; font-size: 0.85em;">Category</label>
+            <select id="descCategory" style="width: 100%;">
+                <option value="">Select...</option>
+                <option value="tops">Tops</option>
+                <option value="bottoms">Bottoms</option>
+                <option value="dresses">Dresses</option>
+                <option value="outerwear">Outerwear</option>
+                <option value="shoes">Shoes</option>
+                <option value="bags">Bags</option>
+                <option value="accessories">Accessories</option>
+            </select>
+        </div>
+        <div>
+            <label style="display: block; color: #888; margin-bottom: 5px; font-size: 0.85em;">Condition</label>
+            <select id="descCondition" style="width: 100%;">
+                <option value="new">New with tags</option>
+                <option value="excellent">Excellent (like new)</option>
+                <option value="good" selected>Good (gently used)</option>
+                <option value="fair">Fair (visible wear)</option>
+            </select>
+        </div>
+        <div>
+            <label style="display: block; color: #888; margin-bottom: 5px; font-size: 0.85em;">Color</label>
+            <input type="text" id="descColor" placeholder="e.g., Black" style="width: 100%;">
+        </div>
+        <div>
+            <label style="display: block; color: #888; margin-bottom: 5px; font-size: 0.85em;">Size</label>
+            <input type="text" id="descSize" placeholder="e.g., US 8, M, 28" style="width: 100%;">
+        </div>
+    </div>
+    
+    <div style="margin-bottom: 20px;">
+        <label style="display: block; color: #888; margin-bottom: 5px; font-size: 0.85em;">Measurements (optional)</label>
+        <input type="text" id="descMeasurements" placeholder="e.g., Pit to pit: 20in, Length: 26in" style="width: 100%;">
+    </div>
+    
+    <div style="margin-bottom: 20px;">
+        <label style="display: block; color: #888; margin-bottom: 5px; font-size: 0.85em;">Extra Notes (optional)</label>
+        <textarea id="descNotes" placeholder="Any special details, flaws, or selling points..." style="width: 100%; height: 60px; resize: vertical;"></textarea>
+    </div>
+    
+    <button class="btn btn-primary" onclick="generateDescriptions()">📝 Generate Descriptions</button>
+    
+    <div id="descriptionResults" style="display: none; margin-top: 25px;">
+        <h4 style="margin-bottom: 15px;">Generated Descriptions</h4>
+        <div id="descTabs" style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;"></div>
+        <div id="descContent" style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 15px; position: relative;">
+            <pre id="descText" style="white-space: pre-wrap; word-wrap: break-word; margin: 0; font-family: inherit;"></pre>
+            <button onclick="copyDescription()" style="position: absolute; top: 10px; right: 10px; padding: 5px 10px; border-radius: 5px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); cursor: pointer;">📋 Copy</button>
+        </div>
+    </div>
+</div>
+
 <!-- Price Checker Tool -->
 <div class="card" style="margin-top: 20px;">
     <h3 style="margin-bottom: 16px;">🔍 Quick Price Check</h3>
@@ -148,6 +216,81 @@ async function processImage() {
     }
     
     btn.disabled = false;
+}
+
+// Description Generator
+let generatedDescriptions = {};
+let currentPlatform = 'poshmark';
+
+async function generateDescriptions() {
+    const name = document.getElementById('descName').value.trim();
+    if (!name) {
+        alert('Please enter an item name');
+        return;
+    }
+    
+    const data = {
+        name: name,
+        brand: document.getElementById('descBrand').value.trim(),
+        category: document.getElementById('descCategory').value,
+        condition: document.getElementById('descCondition').value,
+        color: document.getElementById('descColor').value.trim(),
+        size: document.getElementById('descSize').value.trim(),
+        measurements: document.getElementById('descMeasurements').value.trim(),
+        notes: document.getElementById('descNotes').value.trim()
+    };
+    
+    try {
+        const response = await fetch('/api/generate-description', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        
+        generatedDescriptions = await response.json();
+        
+        // Create tabs
+        const platforms = [
+            { id: 'poshmark', label: '🛍️ Poshmark' },
+            { id: 'depop', label: '👕 Depop' },
+            { id: 'mercari', label: '📦 Mercari' },
+            { id: 'ebay', label: '🏷️ eBay' },
+            { id: 'xiaohongshu', label: '📕 小红书' }
+        ];
+        
+        const tabsHtml = platforms.map(p => 
+            `<button class="btn ${p.id === currentPlatform ? 'btn-primary' : ''}" 
+                     onclick="showPlatform('${p.id}')" 
+                     id="tab-${p.id}">${p.label}</button>`
+        ).join('');
+        
+        document.getElementById('descTabs').innerHTML = tabsHtml;
+        document.getElementById('descText').textContent = generatedDescriptions[currentPlatform];
+        document.getElementById('descriptionResults').style.display = 'block';
+        
+    } catch (error) {
+        alert('Error generating descriptions: ' + error.message);
+    }
+}
+
+function showPlatform(platform) {
+    currentPlatform = platform;
+    document.getElementById('descText').textContent = generatedDescriptions[platform];
+    
+    // Update tab styles
+    document.querySelectorAll('#descTabs button').forEach(btn => {
+        btn.classList.remove('btn-primary');
+    });
+    document.getElementById('tab-' + platform).classList.add('btn-primary');
+}
+
+function copyDescription() {
+    const text = document.getElementById('descText').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+        const btn = event.target;
+        btn.textContent = '✅ Copied!';
+        setTimeout(() => btn.textContent = '📋 Copy', 2000);
+    });
 }
 
 async function quickPriceCheck() {

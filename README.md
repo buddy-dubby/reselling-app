@@ -17,8 +17,8 @@
 - **Quick Stats Dashboard** - Total value, counts by status
 
 ### 🚧 Coming Soon
-- [ ] AI description generator
-- [ ] Image background removal
+- [x] AI description generator ✅ (added 2026-02-08!)
+- [x] Image background removal ✅
 - [ ] Cross-posting to multiple platforms
 - [ ] Real-time price scraping from sold listings
 
