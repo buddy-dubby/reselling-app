@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Inventory Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>📊 Inventory Dashboard</h1>
+    <p class="text-muted">Track your listings and get smart repricing suggestions</p>
+    
+    <!-- Summary Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center bg-primary text-white">
+                <div class="card-body">
+                    <h2>{{ stats.total_items }}</h2>
+                    <small>Total Items</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-success text-white">
+                <div class="card-body">
+                    <h2>{{ stats.listed }}</h2>
+                    <small>Listed</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-warning text-dark">
+                <div class="card-body">
+                    <h2>{{ stats.stale }}</h2>
+                    <small>Need Repricing</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-info text-white">
+                <div class="card-body">
+                    <h2>${{ "%.2f"|format(stats.total_value) }}</h2>
+                    <small>Inventory Value</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Repricing Suggestions -->
+    {% if stale_items %}
+    <div class="card mb-4 border-warning">
+        <div class="card-header bg-warning text-dark">
+            <strong>⏰ Repricing Suggestions</strong>
+            <small class="float-end">Items listed 7+ days without activity</small>
+        </div>
+        <div class="card-body">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Days Listed</th>
+                        <th>Current Price</th>
+                        <th>Suggested Price</th>
+                        <th>Platform</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in stale_items %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('view_item', item_id=item.id) }}">
+                                {{ item.brand }} {{ item.name }}
+                            </a>
+                        </td>
+                        <td>
+                            <span class="badge {% if item.days_listed > 14 %}bg-danger{% elif item.days_listed > 7 %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                                {{ item.days_listed }} days
+                            </span>
+                        </td>
+                        <td>${{ "%.2f"|format(item.target_price) }}</td>
+                        <td class="text-success">${{ "%.2f"|format(item.suggested_price) }}</td>
+                        <td>{{ item.platforms|join(', ') if item.platforms else 'Unlisted' }}</td>
+                        <td>
+                            <a href="{{ url_for('edit_item', item_id=item.id) }}" class="btn btn-sm btn-outline-primary">
+                                Update Price
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- All Items Grid -->
+    <div class="card">
+        <div class="card-header">
+            <strong>📦 All Items</strong>
+        </div>
+        <div class="card-body">
+            {% if items %}
+            <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-3">
+                {% for item in items %}
+                <div class="col">
+                    <div class="card h-100 {% if item.status == 'sold' %}border-success{% elif item.days_listed and item.days_listed > 14 %}border-warning{% endif %}">
+                        {% if item.photos %}
+                        <img src="{{ url_for('static', filename='uploads/' + item.photos[0]) }}" 
+                             class="card-img-top" alt="{{ item.name }}"
+                             style="height: 150px; object-fit: cover;">
+                        {% else %}
+                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center" 
+                             style="height: 150px;">
+                            <span class="text-muted">No photo</span>
+                        </div>
+                        {% endif %}
+                        <div class="card-body p-2">
+                            <h6 class="card-title mb-1">{{ item.brand }} {{ item.name }}</h6>
+                            <p class="card-text mb-1">
+                                <span class="badge {% if item.status == 'listed' %}bg-success{% elif item.status == 'sold' %}bg-primary{% else %}bg-secondary{% endif %}">
+                                    {{ item.status|capitalize }}
+                                </span>
+                                {% if item.days_listed %}
+                                <small class="text-muted">{{ item.days_listed }}d</small>
+                                {% endif %}
+                            </p>
+                            <p class="mb-0">
+                                <strong>${{ "%.2f"|format(item.target_price) }}</strong>
+                                {% if item.floor_price %}
+                                <small class="text-muted">(min ${{ "%.2f"|format(item.floor_price) }})</small>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="card-footer bg-transparent p-2">
+                            <a href="{{ url_for('view_item', item_id=item.id) }}" class="btn btn-sm btn-outline-secondary w-100">
+                                View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5 text-muted">
+                <p>No items in inventory yet!</p>
+                <a href="{{ url_for('add_item') }}" class="btn btn-primary">Add First Item</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

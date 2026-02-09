@@ -38,6 +38,50 @@ def index():
     inventory = load_inventory()
     return render_template('index.html', items=inventory['items'])
 
+@app.route('/dashboard')
+def dashboard():
+    """Inventory dashboard with repricing suggestions"""
+    inventory = load_inventory()
+    items = inventory.get('items', [])
+    
+    # Calculate days listed for each item
+    now = datetime.now()
+    for item in items:
+        if item.get('listed_at'):
+            listed_date = datetime.fromisoformat(item['listed_at'])
+            item['days_listed'] = (now - listed_date).days
+        elif item.get('created_at'):
+            # Fall back to created_at if listed_at not set
+            created_date = datetime.fromisoformat(item['created_at'])
+            item['days_listed'] = (now - created_date).days
+        else:
+            item['days_listed'] = 0
+    
+    # Find stale items (listed 7+ days, still active)
+    stale_items = []
+    for item in items:
+        if item.get('days_listed', 0) >= 7 and item.get('status') not in ['sold', 'removed']:
+            # Calculate suggested price (5% drop per week, min floor price)
+            current_price = item.get('target_price', 0)
+            floor = item.get('floor_price', current_price * 0.5)
+            weeks_listed = item['days_listed'] / 7
+            suggested = max(current_price * (0.95 ** weeks_listed), floor)
+            item['suggested_price'] = round(suggested, 2)
+            stale_items.append(item)
+    
+    # Sort stale items by days listed (oldest first)
+    stale_items.sort(key=lambda x: x.get('days_listed', 0), reverse=True)
+    
+    # Calculate stats
+    stats = {
+        'total_items': len(items),
+        'listed': len([i for i in items if i.get('status') == 'listed']),
+        'stale': len(stale_items),
+        'total_value': sum(i.get('target_price', 0) for i in items if i.get('status') != 'sold')
+    }
+    
+    return render_template('dashboard.html', items=items, stale_items=stale_items, stats=stats)
+
 @app.route('/add', methods=['GET', 'POST'])
 def add_item():
     if request.method == 'POST':
