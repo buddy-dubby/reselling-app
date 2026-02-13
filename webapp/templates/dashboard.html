@@ -43,6 +43,118 @@
         </div>
     </div>
     
+    <!-- Seasonal Tips -->
+    <div class="card mb-4 border-info">
+        <div class="card-header bg-info text-white">
+            <strong>🌸 Seasonal Selling Tips</strong>
+            <small class="float-end">{{ now.strftime('%B %Y') if now else 'February 2026' }}</small>
+        </div>
+        <div class="card-body">
+            {% set month = now.month if now else 2 %}
+            {% if month in [12, 1, 2] %}
+            <!-- Winter: Dec-Feb -->
+            <div class="row">
+                <div class="col-md-4">
+                    <h6>🔥 Hot Right Now</h6>
+                    <ul class="list-unstyled mb-0">
+                        <li>❄️ Winter coats & jackets</li>
+                        <li>🧣 Sweaters, scarves</li>
+                        <li>💝 Valentine's red/pink items</li>
+                        <li>🎿 Boots & cold-weather gear</li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h6>📉 Consider Clearance</h6>
+                    <ul class="list-unstyled mb-0">
+                        <li>🩱 Summer clothes</li>
+                        <li>🩴 Sandals & flip-flops</li>
+                        <li>👗 Light dresses</li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h6>💡 Pro Tip</h6>
+                    <p class="mb-0 small">Tax refund season (Feb-Apr) = buyers have extra cash. Price premium items higher!</p>
+                </div>
+            </div>
+            {% elif month in [3, 4, 5] %}
+            <!-- Spring: Mar-May -->
+            <div class="row">
+                <div class="col-md-4">
+                    <h6>🔥 Hot Right Now</h6>
+                    <ul class="list-unstyled mb-0">
+                        <li>🌷 Light jackets & cardigans</li>
+                        <li>👗 Spring dresses</li>
+                        <li>🎓 Graduation outfits</li>
+                        <li>👟 White sneakers</li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h6>📉 Clearance Time</h6>
+                    <ul class="list-unstyled mb-0">
+                        <li>🧥 Heavy winter coats</li>
+                        <li>🧤 Winter accessories</li>
+                        <li>🥾 Snow boots</li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h6>💡 Pro Tip</h6>
+                    <p class="mb-0 small">List summer items NOW — buyers shop ahead. Prom/wedding season = formal wear demand spikes!</p>
+                </div>
+            </div>
+            {% elif month in [6, 7, 8] %}
+            <!-- Summer: Jun-Aug -->
+            <div class="row">
+                <div class="col-md-4">
+                    <h6>🔥 Hot Right Now</h6>
+                    <ul class="list-unstyled mb-0">
+                        <li>👙 Swimwear & beach gear</li>
+                        <li>👗 Summer dresses</li>
+                        <li>🩴 Sandals & slides</li>
+                        <li>🎒 Back-to-school (Aug)</li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h6>📉 Off-Season</h6>
+                    <ul class="list-unstyled mb-0">
+                        <li>🧥 Heavy coats</li>
+                        <li>🧣 Sweaters</li>
+                        <li>🥾 Boots</li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h6>💡 Pro Tip</h6>
+                    <p class="mb-0 small">Start listing fall items in late August — early shoppers pay premium prices!</p>
+                </div>
+            </div>
+            {% else %}
+            <!-- Fall: Sep-Nov -->
+            <div class="row">
+                <div class="col-md-4">
+                    <h6>🔥 Hot Right Now</h6>
+                    <ul class="list-unstyled mb-0">
+                        <li>🍂 Leather jackets</li>
+                        <li>🥾 Boots & booties</li>
+                        <li>🧥 Coats & outerwear</li>
+                        <li>🎃 Halloween costumes (Oct)</li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h6>📉 End of Season</h6>
+                    <ul class="list-unstyled mb-0">
+                        <li>👙 Swimwear</li>
+                        <li>🩴 Summer sandals</li>
+                        <li>👗 Sleeveless items</li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h6>💡 Pro Tip</h6>
+                    <p class="mb-0 small">Black Friday/Cyber Monday = highest traffic. List your best items before November!</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
     <!-- Repricing Suggestions -->
     {% if stale_items %}
     <div class="card mb-4 border-warning">

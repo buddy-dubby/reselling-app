@@ -19,6 +19,7 @@
 ### 🚧 Coming Soon
 - [x] AI description generator ✅ (added 2026-02-08!)
 - [x] Image background removal ✅
+- [x] Listing exporter (copy-paste ready text) ✅ (added 2026-02-11!)
 - [ ] Cross-posting to multiple platforms
 - [ ] Real-time price scraping from sold listings
 

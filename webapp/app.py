@@ -80,7 +80,7 @@ def dashboard():
         'total_value': sum(i.get('target_price', 0) for i in items if i.get('status') != 'sold')
     }
     
-    return render_template('dashboard.html', items=items, stale_items=stale_items, stats=stats)
+    return render_template('dashboard.html', items=items, stale_items=stale_items, stats=stats, now=now)
 
 @app.route('/add', methods=['GET', 'POST'])
 def add_item():
@@ -358,6 +358,34 @@ def remove_bg_for_item(item_id, photo_index):
         
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route('/api/export-listing/<item_id>', methods=['GET'])
+def export_listing(item_id):
+    """Export item to platform-ready listings"""
+    from listing_exporter import export_all_platforms
+    
+    inventory = load_inventory()
+    item = next((i for i in inventory['items'] if i['id'] == item_id), None)
+    
+    if not item:
+        return jsonify({"error": "Item not found"}), 404
+    
+    result = export_all_platforms(item)
+    return jsonify(result)
+
+@app.route('/item/<item_id>/export')
+def export_item_page(item_id):
+    """Page to view and copy listing exports"""
+    from listing_exporter import export_all_platforms
+    
+    inventory = load_inventory()
+    item = next((i for i in inventory['items'] if i['id'] == item_id), None)
+    
+    if not item:
+        return "Item not found", 404
+    
+    export = export_all_platforms(item)
+    return render_template('export.html', item=item, export=export)
 
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
