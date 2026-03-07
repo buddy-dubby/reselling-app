@@ -15,6 +15,7 @@
 - **Price Calculator** - Real fee calculations for each platform
 - **Status Tracking** - Unlisted → Listed → Sold
 - **Quick Stats Dashboard** - Total value, counts by status
+- **QR Code Labels** - Print labels with QR codes for physical inventory tracking
 
 ### 🚧 Coming Soon
 - [x] AI description generator ✅ (added 2026-02-08!)

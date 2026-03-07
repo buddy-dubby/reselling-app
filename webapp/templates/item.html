@@ -12,6 +12,7 @@
         </div>
         <div style="display: flex; gap: 10px; flex-wrap: wrap;">
             <a href="/item/{{ item.id }}/export" class="btn btn-primary">📋 Export Listing</a>
+            <a href="/item/{{ item.id }}/label" class="btn">🏷️ QR Label</a>
             <a href="/item/{{ item.id }}/edit" class="btn">✏️ Edit</a>
             <form action="/item/{{ item.id }}/delete" method="POST" style="display: inline;" onsubmit="return confirm('Delete this item?');">
                 <button type="submit" class="btn btn-danger">🗑️</button>

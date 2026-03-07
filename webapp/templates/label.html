@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Label - {{ item.name }}{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 400px; margin: 0 auto; padding: 20px;">
+    <a href="{{ url_for('view_item', item_id=item.id) }}" class="btn btn-secondary" style="margin-bottom: 20px;">← Back to Item</a>
+    
+    <div class="label-card" style="border: 2px dashed #ccc; padding: 20px; text-align: center; background: white;">
+        <img src="{{ url_for('generate_qr', item_id=item.id) }}" alt="QR Code" style="width: 150px; height: 150px;">
+        
+        <div style="margin-top: 15px;">
+            <strong style="font-size: 14px;">{{ item.name }}</strong>
+            {% if item.brand %}
+            <div style="font-size: 12px; color: #666;">{{ item.brand }}</div>
+            {% endif %}
+            {% if item.size %}
+            <div style="font-size: 12px; color: #666;">Size: {{ item.size }}</div>
+            {% endif %}
+        </div>
+        
+        <div style="margin-top: 10px; font-size: 18px; font-weight: bold; color: #2ecc71;">
+            ${{ "%.2f"|format(item.target_price or 0) }}
+        </div>
+        
+        <div style="margin-top: 5px; font-size: 10px; color: #999;">
+            ID: {{ item.id }}
+        </div>
+    </div>
+    
+    <button onclick="window.print()" class="btn btn-primary" style="width: 100%; margin-top: 20px;">
+        🖨️ Print Label
+    </button>
+</div>
+
+<style>
+    @media print {
+        .btn, nav, header, footer { display: none !important; }
+        .label-card { border: 1px solid #000 !important; }
+        body { background: white !important; }
+    }
+</style>
+{% endblock %}

@@ -229,6 +229,33 @@ def api_inventory():
     """API endpoint to get all inventory"""
     return jsonify(load_inventory())
 
+@app.route('/api/health')
+def api_health():
+    """Health check endpoint for monitoring"""
+    inventory = load_inventory()
+    items = inventory.get('items', [])
+    
+    # Calculate stats
+    now = datetime.now()
+    stats = {
+        'status': 'ok',
+        'timestamp': now.isoformat(),
+        'inventory': {
+            'total': len(items),
+            'unlisted': len([i for i in items if i.get('status') == 'unlisted']),
+            'listed': len([i for i in items if i.get('status') == 'listed']),
+            'sold': len([i for i in items if i.get('status') == 'sold']),
+        },
+        'value': {
+            'total_target': sum(i.get('target_price', 0) for i in items if i.get('status') != 'sold'),
+            'total_cost': sum(i.get('cost', 0) for i in items),
+            'potential_profit': sum(i.get('target_price', 0) - i.get('cost', 0) for i in items if i.get('status') != 'sold'),
+        },
+        'version': '1.0.0',
+        'author': 'Buddy Dubby 🫠'
+    }
+    return jsonify(stats)
+
 @app.route('/api/generate-description', methods=['POST'])
 def generate_description_api():
     """API endpoint to generate listing descriptions"""
@@ -386,6 +413,60 @@ def export_item_page(item_id):
     
     export = export_all_platforms(item)
     return render_template('export.html', item=item, export=export)
+
+@app.route('/api/qr/<item_id>')
+def generate_qr(item_id):
+    """Generate QR code for an item - links to item detail page"""
+    import qrcode
+    import io
+    from flask import Response
+    
+    inventory = load_inventory()
+    item = next((i for i in inventory['items'] if i['id'] == item_id), None)
+    
+    if not item:
+        return "Item not found", 404
+    
+    # Generate URL to item detail page
+    # Use request host for flexibility
+    item_url = f"{request.host_url}item/{item_id}"
+    
+    # Create QR code
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=10,
+        border=2,
+    )
+    qr.add_data(item_url)
+    qr.make(fit=True)
+    
+    img = qr.make_image(fill_color="black", back_color="white")
+    
+    # Save to bytes
+    buf = io.BytesIO()
+    img.save(buf, format='PNG')
+    buf.seek(0)
+    
+    return Response(buf.getvalue(), mimetype='image/png')
+
+@app.route('/item/<item_id>/label')
+def item_label(item_id):
+    """Printable label with QR code for an item"""
+    inventory = load_inventory()
+    item = next((i for i in inventory['items'] if i['id'] == item_id), None)
+    
+    if not item:
+        return "Item not found", 404
+    
+    return render_template('label.html', item=item)
+
+@app.route('/labels')
+def all_labels():
+    """Print all inventory labels at once"""
+    inventory = load_inventory()
+    items = [i for i in inventory.get('items', []) if i.get('status') != 'sold']
+    return render_template('labels.html', items=items)
 
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):

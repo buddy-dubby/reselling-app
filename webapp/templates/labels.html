@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Print All Labels{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 20px;">
+    <div class="no-print" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <a href="{{ url_for('index') }}" class="btn btn-secondary">← Back to Inventory</a>
+        </div>
+        <div>
+            <span style="color: #666;">{{ items|length }} labels</span>
+            <button onclick="window.print()" class="btn btn-primary" style="margin-left: 10px;">
+                🖨️ Print All Labels
+            </button>
+        </div>
+    </div>
+    
+    <div class="labels-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px;">
+        {% for item in items %}
+        <div class="label-card" style="border: 2px dashed #ccc; padding: 15px; text-align: center; background: white; page-break-inside: avoid;">
+            <img src="{{ url_for('generate_qr', item_id=item.id) }}" alt="QR Code" style="width: 100px; height: 100px;">
+            
+            <div style="margin-top: 10px;">
+                <strong style="font-size: 12px;">{{ item.name[:30] }}{% if item.name|length > 30 %}...{% endif %}</strong>
+                {% if item.brand %}
+                <div style="font-size: 10px; color: #666;">{{ item.brand }}</div>
+                {% endif %}
+                {% if item.size %}
+                <div style="font-size: 10px; color: #666;">Size: {{ item.size }}</div>
+                {% endif %}
+            </div>
+            
+            <div style="margin-top: 8px; font-size: 16px; font-weight: bold; color: #2ecc71;">
+                ${{ "%.2f"|format(item.target_price or 0) }}
+            </div>
+            
+            <div style="margin-top: 4px; font-size: 9px; color: #999;">
+                {{ item.id }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    @media print {
+        .no-print, nav, header, footer { display: none !important; }
+        .label-card { border: 1px solid #000 !important; }
+        body { background: white !important; }
+        .labels-grid { 
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 10px !important;
+        }
+    }
+</style>
+{% endblock %}
